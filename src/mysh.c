@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
     // remind user if they are running in interactive mode
     if (isatty(fin)) {
-	    fputs("[mysh>] ", stderr);
+	    fputs("mysh> ", stderr);
     }
 
     // set up storage for the current line
@@ -74,9 +74,9 @@ int main(int argc, char **argv)
             return EXIT_SUCCESS;
         }
         if (errNum) {
-            fputs("[!mysh>] ", stderr);
+            fputs("!mysh> ", stderr);
         } else {
-            fputs("[mysh>] ", stderr);
+            fputs("mysh> ", stderr);
             errNum = 0;
         }
     }
