@@ -14,7 +14,7 @@
 #endif
 
 char *lineBuffer;
-int linePos, lineSize;
+int linePos, lineSize, errNum, exitShell;
 
 void append(char *, int);
 void dumpLine(void);
@@ -26,19 +26,20 @@ int main(int argc, char **argv)
     char buffer[BUFSIZE];
 
     // open specified file or read from stdin
-    if (argc >= 1) {
+    if (argc >= 2) {
         fin = open(argv[0], O_RDONLY);
         if (fin == -1) {
-            perror(argv[0]);
+            perror("Unable to open batch file");
             exit(EXIT_FAILURE);
         }
     } else {
         fin = 0;
+        errNum = 0;
     }
 
     // remind user if they are running in interactive mode
     if (isatty(fin)) {
-	    fputs("[mysh>]\n", stderr);
+	    fputs("[mysh>] ", stderr);
     }
 
     // set up storage for the current line
@@ -69,10 +70,64 @@ int main(int argc, char **argv)
             if (DEBUG) fprintf(stderr, "partial line %d+%d bytes\n", linePos, thisLen);
             append(buffer + lstart, thisLen);
         }
+        if (exitShell) {
+            return EXIT_SUCCESS;
+        }
+        if (errNum) {
+            fputs("[!mysh>] ", stderr);
+        } else {
+            fputs("[mysh>] ", stderr);
+            errNum = 0;
+        }
     }
 
     free(lineBuffer);
     close(fin);
 
     return EXIT_SUCCESS;
+}
+
+// add specified text the line buffer, expanding as necessary
+// assumes we are adding at least one byte
+void append(char *buf, int len)
+{
+    int newPos = linePos + len;
+    
+    if (newPos > lineSize) {
+	lineSize *= 2;
+	if (DEBUG) fprintf(stderr, "expanding line buffer to %d\n", lineSize);
+	assert(lineSize >= newPos);
+	lineBuffer = realloc(lineBuffer, lineSize);
+	if (lineBuffer == NULL) {
+	    perror("line buffer");
+	    exit(EXIT_FAILURE);
+	}
+    }
+
+    memcpy(lineBuffer + linePos, buf, len);
+    linePos = newPos;
+}
+
+// print the contents of crntLine in standard order
+// requires: 
+// - linePos is the length of the line in lineBuffer
+// - linePos is at least 1
+// - final character of current line is '\n'
+void dumpLine(void)
+{
+    char *token;
+    char *delim = "\t\n";
+    int l = 0, r = linePos - 2;
+    char c;
+    assert(lineBuffer[linePos-1] == '\n');
+    token = strtok(lineBuffer, delim);
+
+    // dump output to stdout
+    write(1, lineBuffer, linePos);
+
+    if (strcmp(token, "exit") == 0) {
+        fputs("\nexit request\n", stderr);
+        exitShell = 1; 
+    }
+
 }
