@@ -202,7 +202,6 @@ void dumpLine(void)
                     } else {
                         errNum = 1;
                     }
-                    //free(dir);
                 }
             }
             if(errNum){
