@@ -232,6 +232,8 @@ void dumpLine(void)
                     errNum = 1;
                     perror("Failed");
                 } else {
+                    fprintf(stderr, "Success\n");
+                    fprintf(stderr, "New Dir: %s\n", getcwd(cwd, sizeof(cwd)));
                     errNum = 0;
                 }
             }
@@ -275,6 +277,13 @@ void dumpLine(void)
             strcpy(dir, token);
             executeLine(dir,token);
             return;
+
+        //home dir path file case
+        } else if (token[0] == '~' && token[1] == '/') {
+            char *homeDir = getenv("HOME");
+            fprintf(stderr,"%s\n",homeDir);
+
+            //replace ~ with homedir
         
         //invalid argument case
         } else if (strcmp(token, ">") == 0 || strcmp(token, "<") == 0){
