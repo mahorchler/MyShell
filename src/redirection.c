@@ -20,4 +20,6 @@ int main(int argc, char **argv)
 
     //changing standard input
     freopen("in.txt","r",stdin);
+
+    //i don't even know if this is how you do it for the commands tho...
 }
