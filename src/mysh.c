@@ -152,6 +152,7 @@ void dumpLine(void)
                 //change directory
                 //printf("cd now token '%s'\n", token);
                 char *dir = getcwd(cwd, sizeof(cwd));
+                strcat(dir, "/");
                 strcat(dir, token);
                 //printf("dir after strcat: %s\n", dir);
                 if (strcmp(token, "..") == 0) {
