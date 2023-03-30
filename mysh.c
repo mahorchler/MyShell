@@ -141,7 +141,7 @@ void dumpLine(void)
             fputs("Terminating Program\n", stderr);
             exitShell = 1; 
             return;
-        } else if (strcmp(token, "pwd") == 0) {
+        } else if (strcmp(token, "pwd") == 0 && !(token = strtok(NULL, delim))) {
             if (getcwd(cwd, sizeof(cwd)) != NULL) {
                 fprintf(stderr, "Current working directory: %s\n", cwd);
                 errNum = 0;
@@ -166,14 +166,18 @@ void dumpLine(void)
                 char *dir = getcwd(cwd, sizeof(cwd));
                 strcat(dir, "/");
                 strcat(dir, token);
+                char *nextToken = strtok(NULL, delim);
+                if (DEBUG) printf("token %s\n", nextToken);
                 if (strcmp(token, "..") == 0) {
-                    if (chdir("..") != 0) {
+                    //token = strtok(NULL, delim);
+                    //printf("token %s\n", token);
+                    if (chdir("..") != 0 || nextToken != NULL) {
                         errNum = 1;
                         fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
                     } else {
                         errNum = 0;
                     }
-                } else if (chdir(dir) != 0) {
+                } else if (nextToken != NULL || chdir(dir) != 0) {
                     fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
                     errNum = 1;
                 } else {
@@ -196,8 +200,18 @@ void dumpLine(void)
                     if (stat(dir, &sfile) == 0) {
                         //printf("file found %s\n", defaultDirs[j]);
                         
+                        int pipe_fd[2];
+                        if (pipe(pipe_fd) == -1) {
+                            perror("pipe error");
+                            errNum = 1;
+                            return;
+                        }
                         int pid = fork();
                         if (pid == 0) {
+                            //set up pipe
+                            close(pipe_fd[0]); //close read end of pipe
+                            dup2(pipe_fd[1], STDERR_FILENO); //redirect stderr to write end of pipe
+                            close(pipe_fd[1]);
                             //set up arguments
                             int argCount = 0; //count arguments
                             token = strtok(NULL, delim);
@@ -231,10 +245,20 @@ void dumpLine(void)
                             exit(EXIT_FAILURE);
                         }
                         // we are in the parent process
+                        close(pipe_fd[1]);
+                        char buf[BUFSIZE];
+                        ssize_t bytes;
+                        if ((bytes = read(pipe_fd[0], buf, sizeof(buf))) > 0) {
+                            //fwrite(buf, 1, bytes, stderr);
+                            errNum = 1;
+                            fprintf(stderr, "Error: \n");
+                        } else {
+                            errNum = 0;
+                        }
                         int wstatus;
                         int tpid = wait(&wstatus);   // wait for child to finish
                         
-                        errNum = 0;
+                        //errNum = 0;
                         break;
 
                     } else {
