@@ -5,3 +5,5 @@ there won't necessarily be a space between tokens like < > or |
     - when * is present, do wildcard replacement
 
 Figure out what second extension to do
+
+Develop batch file for testing
