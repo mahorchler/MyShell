@@ -190,6 +190,66 @@ void dumpLine(void)
                 }
                 return;
             }
+        } else if (token[0] == '/'){
+            char dir[BUFSIZE];
+            strcpy(dir, token);
+            int pipe_fd[2];
+            if (pipe(pipe_fd) == -1) {
+                perror("pipe error");
+                errNum = 1;
+                return;
+            }
+            int pid = fork();
+            if (pid == 0) {
+                //set up pipe
+                close(pipe_fd[0]); //close read end of pipe
+                dup2(pipe_fd[1], STDERR_FILENO); //redirect stderr to write end of pipe
+                close(pipe_fd[1]);
+                //set up arguments
+                int argCount = 0; //count arguments
+                token = strtok(NULL, delim);
+                while(token != NULL){
+                    argCount+=1;
+                    token = strtok(NULL, delim);
+                }
+
+                char **args = malloc((argCount+2) * sizeof(char *)); //allocate argument space
+                args[0] = (char *) malloc(strlen(dir)*sizeof(char));
+                strcpy(args[0],dir); //put dir as first argument
+
+                //add arguments to args
+                strcpy(lineBufferCopy,lineBuffer);
+                token = strtok(lineBufferCopy,delim); //reset token
+                token = strtok(NULL, delim);
+                int i = 1;
+                while(token != NULL){
+                    args[i] = (char *) malloc(strlen(token)*sizeof(char));
+                    strcpy(args[i],token);
+                    token = strtok(NULL, delim);
+                    i+=1;
+                }
+                args[i]=NULL; //make last argument null
+
+                if(execv(dir,args)){
+                    errNum=1;
+                };
+                
+                // if we got here, something went wrong
+                exit(EXIT_FAILURE);
+            }
+            // we are in the parent process
+            close(pipe_fd[1]);
+            char buf[BUFSIZE];
+            ssize_t bytes;
+            if ((bytes = read(pipe_fd[0], buf, sizeof(buf))) > 0) {
+                perror(buf);
+                errNum = 1;
+            } else {
+                errNum = 0;
+            }
+            int wstatus;
+            int tpid = wait(&wstatus);   // wait for child to finish
+            return;
         } else if (strcmp(token, ">") == 0 || strcmp(token, "<") == 0){
             //printf("Invalid arguments");
             errNum = 1;
