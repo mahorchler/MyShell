@@ -49,12 +49,13 @@ int match(char *exp, char *fileName)
 int main(int argc, char **argv)
 {
     char *exp = "*"; //testing, this will later be inputted by user
+    char *path = "."; //testing, this will later be inputted by user
 
     DIR *d;
     struct dirent *dir;
     int numFiles = 0; //count number of matching files
 
-    d = opendir(".");
+    d = opendir(path);
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             //don't match root or child
