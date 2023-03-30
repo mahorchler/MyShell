@@ -1,0 +1,14 @@
+cd needs to throw error if it has more than one argument
+pwd needs to throw error if it has more than zero arguments
+
+errNum needs to change to 1 if there is an error in the execv() call (i have no idea how to do this)
+
+there won't necessarily be a space between tokens like < > or |
+ - probably best to check every token obtained from strtok for the presence of < > | or *
+    - when < or > is present, do redirect
+    - when | is present, do pipe
+    - when * is present, do wildcard replacement
+
+Replace ~/ in any path with home path for 3.2 extension
+
+Figure out what second extension to do
