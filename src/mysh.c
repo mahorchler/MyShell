@@ -1,9 +1,12 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #ifndef DEBUG
 #define DEBUG 0
@@ -39,7 +42,7 @@ int main(int argc, char **argv)
 
     // remind user if they are running in interactive mode
     if (isatty(fin)) {
-	    fputs("mysh> ", stderr);
+	    fputs("[mysh>] ", stderr);
     }
 
     // set up storage for the current line
@@ -74,9 +77,9 @@ int main(int argc, char **argv)
             return EXIT_SUCCESS;
         }
         if (errNum) {
-            fputs("!mysh> ", stderr);
+            fputs("[!mysh>] ", stderr);
         } else {
-            fputs("mysh> ", stderr);
+            fputs("[mysh>] ", stderr);
             errNum = 0;
         }
     }
@@ -118,16 +121,75 @@ void dumpLine(void)
     char *token;
     char *delim = "\t\n";
     int l = 0, r = linePos - 2;
-    char c;
+    char c, cwd [BUFSIZE];
     assert(lineBuffer[linePos-1] == '\n');
     token = strtok(lineBuffer, delim);
+    const char *commands[3] = {"cd", "pwd", "exit"};
+    const char *defaultDirs[6] = {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"};
+    DIR *dp;
+    struct dirent *de;
+    struct stat *sfile;
+    int commandSize = 3, defaultDirSize = 6;
 
     // dump output to stdout
-    write(1, lineBuffer, linePos);
+    //write(1, lineBuffer, linePos);
+    printf("\n\n");
 
-    if (strcmp(token, "exit") == 0) {
-        fputs("\nexit request\n", stderr);
-        exitShell = 1; 
+    for (int a = 0; a < linePos-1; a++) {
+        printf("%s", &lineBuffer[a]);
+        printf("\n");
     }
+
+    printf("\n\n");
+   
+    while (token != NULL) {
+        if (strcmp(token, "exit") == 0) {
+            fputs("\nexit request\n", stderr);
+            exitShell = 1; 
+            return;
+            } else if (strcmp(token, "cd") == 0) {
+                if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                    printf("loopCurrent working directory: %s\n", cwd);
+                } else {
+                    fputs("loopgetcwd() error\n", stderr);
+                    errNum = 1;
+                }
+                return;
+            } else if (strcmp(token, "cd") == 0) {
+                //token = strtok(NULL, delim);
+                //change directory
+                printf("cd now");
+                return;
+            } else {
+
+       // for (int i = 0; i < commandSize; i++) {
+             //if (strcmp(token, commands[i]) != 0 && i == commandSize) {
+                //search defaultDirs for command
+                token = "ls";
+                for (int j = 0; j < defaultDirSize; j++) {
+                    dp = opendir(defaultDirs[j]);
+                    if (!dp) {
+                        errNum = 1;
+                        printf("error opening directory %s\n", defaultDirs[j]);
+                    } else {
+                        strcat(cwd, "sort");
+                        if (stat(cwd, sfile) == 0) {
+                            printf("file found\n");
+                            break;
+                        } else {
+                            printf("file not found %d\n", j);
+                            //break;
+                        }
+
+                    }
+                }
+            //} 
+        }
+        token = strtok(NULL, delim);
+    } 
+
+    /*for (int i = 0; i < linePos; i++) {
+        printf("reach %d", lineBuffer[i]);
+    }*/
 
 }
