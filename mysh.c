@@ -158,7 +158,8 @@ void dumpLine(void)
                 //change directory to home
                 if (chdir(getenv("HOME")) != 0) {
                     errNum = 1;
-                    fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
+                    //fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
+                    perror("Failed");
                 } else {
                     errNum = 0;
                 }
@@ -171,20 +172,20 @@ void dumpLine(void)
                 char *nextToken = strtok(NULL, delim);
                 if (DEBUG) printf("token %s\n", nextToken);
                 if (strcmp(token, "..") == 0) {
-                    //token = strtok(NULL, delim);
-                    //printf("token %s\n", token);
                     if (chdir("..") != 0 || nextToken != NULL) {
                         errNum = 1;
-                        fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
+                        perror("Failed");
+                        //fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
                     } else {
                         errNum = 0;
                     }
                 } else if (nextToken != NULL || chdir(dir) != 0) {
-                    fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    //fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    perror("Failed");
                     errNum = 1;
                 } else {
-                    fprintf(stderr, "success\n");
-                    fprintf(stderr, "new dir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    fprintf(stderr, "Success\n");
+                    fprintf(stderr, "New Dir: %s\n", getcwd(cwd, sizeof(cwd)));
                     errNum = 0;
                 }
                 return;
@@ -195,6 +196,7 @@ void dumpLine(void)
             return;
         } else {
             //search defaultDirs for command
+            int found = 0; //command found?
             for (int j = 0; j < defaultDirSize; j++) {
                 dp = opendir(defaultDirs[j]);
                 if (!dp) {
@@ -204,7 +206,7 @@ void dumpLine(void)
                     char dir[BUFSIZE];
                     sprintf(dir, "%s/%s", defaultDirs[j], token);
                     if (stat(dir, &sfile) == 0) {
-                        //printf("file found %s\n", defaultDirs[j]);
+                        found = 1;
                         
                         int pipe_fd[2];
                         if (pipe(pipe_fd) == -1) {
@@ -255,16 +257,13 @@ void dumpLine(void)
                         char buf[BUFSIZE];
                         ssize_t bytes;
                         if ((bytes = read(pipe_fd[0], buf, sizeof(buf))) > 0) {
-                            //fwrite(buf, 1, bytes, stderr);
+                            perror(buf);
                             errNum = 1;
-                            fprintf(stderr, "Error: \n");
                         } else {
                             errNum = 0;
                         }
                         int wstatus;
                         int tpid = wait(&wstatus);   // wait for child to finish
-                        
-                        //errNum = 0;
                         
                         break;
 
@@ -273,8 +272,8 @@ void dumpLine(void)
                     }
                 }
             }
-            if(errNum){
-                fprintf(stderr,"Error: Command Not Found\n");
+            if(!found){
+                fputs("Error: Command Not Found\n",stderr);
             }
         }
     }
