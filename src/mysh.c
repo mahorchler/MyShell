@@ -128,7 +128,7 @@ void dumpLine(void)
     char *defaultDirs[6] = {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"};
     DIR *dp;
     struct dirent *de;
-    struct stat *sfile;
+    struct stat sfile;
     int commandSize = 3, defaultDirSize = 6;
 
     // dump output to stdout
@@ -159,7 +159,9 @@ void dumpLine(void)
                     if (chdir("..") != 0) {
                         errNum = 1;
                         printf("failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
-                    } 
+                    } else {
+                        errNum = 0;
+                    }
                 } else if (chdir(dir) != 0) {
                     printf("failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
                     errNum = 1;
@@ -174,27 +176,34 @@ void dumpLine(void)
        // for (int i = 0; i < commandSize; i++) {
              //if (strcmp(token, commands[i]) != 0 && i == commandSize) {
                 //search defaultDirs for command
-                token = "ls";
+                //token = "ls";
                 for (int j = 0; j < defaultDirSize; j++) {
                     dp = opendir(defaultDirs[j]);
+                    //printf("cwd: %s\n", getcwd(cwd, sizeof(cwd)));
                     if (!dp) {
                         errNum = 1;
                         printf("error opening directory %s\n", defaultDirs[j]);
                     } else {
-                        //cwd = de->d_name;
-                        char *dir = defaultDirs[j];
-                        printf("\n%s\n", dir);
-                        //strcat(dir, token);
-                        printf("\n%s\n", dir);
+                        //char *dir = (char *) malloc(sizeof(defaultDirs[j]) + sizeof(token));
+                        char dir[BUFSIZE];
+                        //char *dir = defaultDirs[j];
 
-                        if (stat(dir, sfile) == 0) {
-                            printf("file found\n");
+                        //printf("\n%s\n", dir);
+
+                        //printf("cwd: %s\n", getcwd(cwd, sizeof(cwd)));
+                        sprintf(dir, "%s/%s", defaultDirs[j], token);
+                        //printf("dir: %s\n", dir);
+                        //strcat(cwd, token);
+                        if (stat(dir, &sfile) == 0) {
+                            printf("file found %d\n", j);
+                            errNum = 0;
                             break;
                         } else {
-                            printf("file not found %d\n", j);
+                            //printf("file not found %d\n", j);
+                            errNum = 1;
                             //break;
                         }
-
+                        //free(dir);
                     }
                 }
             //} 
