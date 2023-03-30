@@ -79,11 +79,13 @@ int main(int argc, char **argv)
         if (exitShell) {
             return EXIT_SUCCESS;
         }
-        if (errNum) {
-            fputs("!mysh> ", stderr);
-        } else {
-            fputs("mysh> ", stderr);
-            errNum = 0;
+        if (fin == 0) {
+            if (errNum) {
+                fputs("!mysh> ", stderr);
+            } else {
+                fputs("mysh> ", stderr);
+                errNum = 0;
+            }
         }
     }
 
@@ -134,7 +136,7 @@ void dumpLine(void)
     DIR *dp;
     struct dirent *de;
     struct stat sfile;
-    int commandSize = 3, defaultDirSize = 6;
+    int commandSize = 3, defaultDirSize = 6, input_fd, output_fd;
    
     if (token != NULL) {
         if (strcmp(token, "exit") == 0) {
@@ -187,6 +189,10 @@ void dumpLine(void)
                 }
                 return;
             }
+        } else if (strcmp(token, ">") == 0 || strcmp(token, "<") == 0){
+            //printf("Invalid arguments");
+            errNum = 1;
+            return;
         } else {
             //search defaultDirs for command
             for (int j = 0; j < defaultDirSize; j++) {
@@ -259,6 +265,7 @@ void dumpLine(void)
                         int tpid = wait(&wstatus);   // wait for child to finish
                         
                         //errNum = 0;
+                        
                         break;
 
                     } else {
