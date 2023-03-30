@@ -58,6 +58,7 @@ int main(int argc, char **argv)
 
         // search for newlines
         lstart = 0;
+        memset(lineBuffer, 0, BUFSIZE); //reset lineBuffer
         for (pos = 0; pos < bytes; ++pos) {
             if (buffer[pos] == '\n') {
             int thisLen = pos - lstart + 1;
@@ -194,6 +195,7 @@ void dumpLine(void)
                     sprintf(dir, "%s/%s", defaultDirs[j], token);
                     if (stat(dir, &sfile) == 0) {
                         //printf("file found %s\n", defaultDirs[j]);
+                        
                         int pid = fork();
                         if (pid == 0) {
                             //set up arguments
