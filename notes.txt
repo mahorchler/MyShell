@@ -5,5 +5,6 @@ there won't necessarily be a space between tokens like < > or |
     - when * is present, do wildcard replacement
 
 Replace ~/ in any path with home path for 3.2 extension
+- path error (path nonexistent) not working rn
 
 Figure out what second extension to do

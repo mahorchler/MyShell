@@ -280,10 +280,10 @@ void dumpLine(void)
 
         //home dir path file case
         } else if (token[0] == '~' && token[1] == '/') {
-            char *homeDir = getenv("HOME");
-            fprintf(stderr,"%s\n",homeDir);
-
-            //replace ~ with homedir
+            char dir[BUFSIZE];
+            strcpy(dir,getenv("HOME"));
+            strcat(dir,token+1);
+            executeLine(dir,token);
         
         //invalid argument case
         } else if (strcmp(token, ">") == 0 || strcmp(token, "<") == 0){
