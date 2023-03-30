@@ -151,26 +151,37 @@ void dumpLine(void)
             return;
         } else if (strcmp(token, "cd") == 0) {
             token = strtok(NULL, delim);
-            //change directory
-            char *dir = getcwd(cwd, sizeof(cwd));
-            strcat(dir, "/");
-            strcat(dir, token);
-            if (strcmp(token, "..") == 0) {
-                if (chdir("..") != 0) {
+            if(!token){
+                //change directory to home
+                if (chdir(getenv("HOME")) != 0) {
                     errNum = 1;
                     fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
                 } else {
                     errNum = 0;
                 }
-            } else if (chdir(dir) != 0) {
-                fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
-                errNum = 1;
-            } else {
-                fprintf(stderr, "success\n");
-                fprintf(stderr, "new dir: %s\n", getcwd(cwd, sizeof(cwd)));
-                errNum = 0;
             }
-            return;
+            else{
+                //change directory
+                char *dir = getcwd(cwd, sizeof(cwd));
+                strcat(dir, "/");
+                strcat(dir, token);
+                if (strcmp(token, "..") == 0) {
+                    if (chdir("..") != 0) {
+                        errNum = 1;
+                        fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
+                    } else {
+                        errNum = 0;
+                    }
+                } else if (chdir(dir) != 0) {
+                    fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    errNum = 1;
+                } else {
+                    fprintf(stderr, "success\n");
+                    fprintf(stderr, "new dir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    errNum = 0;
+                }
+                return;
+            }
         } else {
             //search defaultDirs for command
             for (int j = 0; j < defaultDirSize; j++) {
