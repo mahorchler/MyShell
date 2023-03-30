@@ -119,7 +119,7 @@ void append(char *buf, int len)
 void dumpLine(void)
 {
     char *token;
-    char *delim = "\t\n";
+    char *delim = " \t\n";
     int l = 0, r = linePos - 2;
     char c, cwd [BUFSIZE];
     assert(lineBuffer[linePos-1] == '\n');
@@ -148,9 +148,25 @@ void dumpLine(void)
                 }
                 return;
             } else if (strcmp(token, "cd") == 0) {
-                //token = strtok(NULL, delim);
+                token = strtok(NULL, delim);
                 //change directory
-                printf("cd now\n");
+                //printf("cd now token '%s'\n", token);
+                char *dir = getcwd(cwd, sizeof(cwd));
+                strcat(dir, token);
+                //printf("dir after strcat: %s\n", dir);
+                if (strcmp(token, "..") == 0) {
+                    if (chdir("..") != 0) {
+                        errNum = 1;
+                        printf("failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
+                    } 
+                } else if (chdir(dir) != 0) {
+                    printf("failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    errNum = 1;
+                } else {
+                    printf("success\n");
+                    printf("new dir: %s\n", getcwd(cwd, sizeof(cwd)));
+                    errNum = 0;
+                }
                 return;
             } else {
 
