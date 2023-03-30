@@ -42,7 +42,8 @@ int main(int argc, char **argv)
 
     // remind user if they are running in interactive mode
     if (isatty(fin)) {
-	    fputs("[mysh>] ", stderr);
+        fputs("Welcome to mysh! Input below:\n", stderr);
+	    fputs("mysh> ", stderr);
     }
 
     // set up storage for the current line
@@ -77,9 +78,9 @@ int main(int argc, char **argv)
             return EXIT_SUCCESS;
         }
         if (errNum) {
-            fputs("[!mysh>] ", stderr);
+            fputs("!mysh> ", stderr);
         } else {
-            fputs("[mysh>] ", stderr);
+            fputs("mysh> ", stderr);
             errNum = 0;
         }
     }
@@ -136,77 +137,60 @@ void dumpLine(void)
    
     while (token != NULL) {
         if (strcmp(token, "exit") == 0) {
-            fputs("\nexit request\n", stderr);
+            fputs("Terminating Program\n", stderr);
             exitShell = 1; 
             return;
-            } else if (strcmp(token, "pwd") == 0) {
-                if (getcwd(cwd, sizeof(cwd)) != NULL) {
-                    printf("Current working directory: %s\n", cwd);
-                } else {
-                    fputs("getcwd() error\n", stderr);
+        } else if (strcmp(token, "pwd") == 0) {
+            if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                fprintf(stderr, "Current working directory: %s\n", cwd);
+                errNum = 0;
+            } else {
+                fputs("getcwd() error\n", stderr);
+                errNum = 1;
+            }
+            return;
+        } else if (strcmp(token, "cd") == 0) {
+            token = strtok(NULL, delim);
+            //change directory
+            char *dir = getcwd(cwd, sizeof(cwd));
+            strcat(dir, "/");
+            strcat(dir, token);
+            if (strcmp(token, "..") == 0) {
+                if (chdir("..") != 0) {
                     errNum = 1;
-                }
-                return;
-            } else if (strcmp(token, "cd") == 0) {
-                token = strtok(NULL, delim);
-                //change directory
-                //printf("cd now token '%s'\n", token);
-                char *dir = getcwd(cwd, sizeof(cwd));
-                strcat(dir, "/");
-                strcat(dir, token);
-                //printf("dir after strcat: %s\n", dir);
-                if (strcmp(token, "..") == 0) {
-                    if (chdir("..") != 0) {
-                        errNum = 1;
-                        printf("failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
-                    } else {
-                        errNum = 0;
-                    }
-                } else if (chdir(dir) != 0) {
-                    printf("failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
-                    errNum = 1;
+                    fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
                 } else {
-                    printf("success\n");
-                    printf("new dir: %s\n", getcwd(cwd, sizeof(cwd)));
                     errNum = 0;
                 }
-                return;
+            } else if (chdir(dir) != 0) {
+                fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
+                errNum = 1;
             } else {
-
-       // for (int i = 0; i < commandSize; i++) {
-             //if (strcmp(token, commands[i]) != 0 && i == commandSize) {
-                //search defaultDirs for command
-                //token = "ls";
-                for (int j = 0; j < defaultDirSize; j++) {
-                    dp = opendir(defaultDirs[j]);
-                    //printf("cwd: %s\n", getcwd(cwd, sizeof(cwd)));
-                    if (!dp) {
-                        errNum = 1;
-                        printf("error opening directory %s\n", defaultDirs[j]);
+                fprintf(stderr, "success\n");
+                fprintf(stderr, "new dir: %s\n", getcwd(cwd, sizeof(cwd)));
+                errNum = 0;
+            }
+            return;
+        } else {
+            //search defaultDirs for command
+            for (int j = 0; j < defaultDirSize; j++) {
+                dp = opendir(defaultDirs[j]);
+                if (!dp) {
+                    errNum = 1;
+                    fprintf(stderr, "Error Opening Directory %s\n", defaultDirs[j]);
+                } else {
+                    char dir[BUFSIZE];
+                    sprintf(dir, "%s/%s", defaultDirs[j], token);
+                    if (stat(dir, &sfile) == 0) {
+                        printf("file found %d\n", j);
+                        errNum = 0;
+                        break;
                     } else {
-                        //char *dir = (char *) malloc(sizeof(defaultDirs[j]) + sizeof(token));
-                        char dir[BUFSIZE];
-                        //char *dir = defaultDirs[j];
-
-                        //printf("\n%s\n", dir);
-
-                        //printf("cwd: %s\n", getcwd(cwd, sizeof(cwd)));
-                        sprintf(dir, "%s/%s", defaultDirs[j], token);
-                        //printf("dir: %s\n", dir);
-                        //strcat(cwd, token);
-                        if (stat(dir, &sfile) == 0) {
-                            printf("file found %d\n", j);
-                            errNum = 0;
-                            break;
-                        } else {
-                            //printf("file not found %d\n", j);
-                            errNum = 1;
-                            //break;
-                        }
-                        //free(dir);
+                        errNum = 1;
                     }
+                    //free(dir);
                 }
-            //} 
+            }
         }
         token = strtok(NULL, delim);
     } 
