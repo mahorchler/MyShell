@@ -150,7 +150,7 @@ void dumpLine(void)
             } else if (strcmp(token, "cd") == 0) {
                 //token = strtok(NULL, delim);
                 //change directory
-                printf("cd now");
+                printf("cd now\n");
                 return;
             } else {
 
