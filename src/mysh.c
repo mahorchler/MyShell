@@ -125,18 +125,17 @@ void dumpLine(void)
     int l = 0, r = linePos - 2;
     char c, cwd [BUFSIZE];
     assert(lineBuffer[linePos-1] == '\n');
-    token = strtok(lineBuffer, delim);
+    char *lineBufferCopy = malloc(BUFSIZE);;
+    strcpy(lineBufferCopy,lineBuffer);
+    token = strtok(lineBufferCopy, delim);
     const char *commands[3] = {"cd", "pwd", "exit"};
     char *defaultDirs[6] = {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"};
     DIR *dp;
     struct dirent *de;
     struct stat sfile;
     int commandSize = 3, defaultDirSize = 6;
-
-    // dump output to stdout
-    //write(1, lineBuffer, linePos);
    
-    while (token != NULL) {
+    if (token != NULL) {
         if (strcmp(token, "exit") == 0) {
             fputs("Terminating Program\n", stderr);
             exitShell = 1; 
@@ -186,8 +185,34 @@ void dumpLine(void)
                         //printf("file found %s\n", defaultDirs[j]);
                         int pid = fork();
                         if (pid == 0) {
-                            char *args[] = {dir,0};
-                            execv(dir,args);
+                            //set up arguments
+                            int argCount = 0; //count arguments
+                            token = strtok(NULL, delim);
+                            while(token != NULL){
+                                argCount+=1;
+                                token = strtok(NULL, delim);
+                            }
+
+                            char **args = malloc((argCount+2) * sizeof(char *)); //allocate argument space
+                            args[0] = (char *) malloc(strlen(dir)*sizeof(char));
+                            strcpy(args[0],dir); //put dir as first argument
+
+                            //add arguments to args
+                            strcpy(lineBufferCopy,lineBuffer);
+                            token = strtok(lineBufferCopy,delim); //reset token
+                            token = strtok(NULL, delim);
+                            int i = 1;
+                            while(token != NULL){
+                                args[i] = (char *) malloc(strlen(token)*sizeof(char));
+                                strcpy(args[i],token);
+                                token = strtok(NULL, delim);
+                                i+=1;
+                            }
+                            args[i]=NULL; //make last argument null
+
+                            if(execv(dir,args)){
+                                errNum=1;
+                            };
                             
                             // if we got here, something went wrong
                             exit(EXIT_FAILURE);
@@ -195,10 +220,10 @@ void dumpLine(void)
                         // we are in the parent process
                         int wstatus;
                         int tpid = wait(&wstatus);   // wait for child to finish
-                        if (WIFEXITED(wstatus)) {
-                            errNum = 0;
-                            break;
-                        }
+                        
+                        errNum = 0;
+                        break;
+
                     } else {
                         errNum = 1;
                     }
@@ -208,11 +233,6 @@ void dumpLine(void)
                 fprintf(stderr,"Error: Command Not Found\n");
             }
         }
-        token = strtok(NULL, delim);
-    } 
-
-    /*for (int i = 0; i < linePos; i++) {
-        printf("reach %d", lineBuffer[i]);
-    }*/
-
+    }
+    free(lineBufferCopy);
 }
