@@ -7,4 +7,6 @@ MyShell implements a command-line shell that provides both interactive and batch
 
 ## Extensions Implemented
 
+3.2 Home Directory
+
 ## Test Plan
