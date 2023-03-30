@@ -1,8 +1,3 @@
-cd needs to throw error if it has more than one argument
-pwd needs to throw error if it has more than zero arguments
-
-errNum needs to change to 1 if there is an error in the execv() call (i have no idea how to do this)
-
 there won't necessarily be a space between tokens like < > or |
  - probably best to check every token obtained from strtok for the presence of < > | or *
     - when < or > is present, do redirect
