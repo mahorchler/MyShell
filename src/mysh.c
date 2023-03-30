@@ -125,7 +125,7 @@ void dumpLine(void)
     assert(lineBuffer[linePos-1] == '\n');
     token = strtok(lineBuffer, delim);
     const char *commands[3] = {"cd", "pwd", "exit"};
-    const char *defaultDirs[6] = {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"};
+    char *defaultDirs[6] = {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"};
     DIR *dp;
     struct dirent *de;
     struct stat *sfile;
@@ -147,11 +147,11 @@ void dumpLine(void)
             fputs("\nexit request\n", stderr);
             exitShell = 1; 
             return;
-            } else if (strcmp(token, "cd") == 0) {
+            } else if (strcmp(token, "pwd") == 0) {
                 if (getcwd(cwd, sizeof(cwd)) != NULL) {
-                    printf("loopCurrent working directory: %s\n", cwd);
+                    printf("Current working directory: %s\n", cwd);
                 } else {
-                    fputs("loopgetcwd() error\n", stderr);
+                    fputs("getcwd() error\n", stderr);
                     errNum = 1;
                 }
                 return;
@@ -172,8 +172,13 @@ void dumpLine(void)
                         errNum = 1;
                         printf("error opening directory %s\n", defaultDirs[j]);
                     } else {
-                        strcat(cwd, "sort");
-                        if (stat(cwd, sfile) == 0) {
+                        //cwd = de->d_name;
+                        char *dir = defaultDirs[j];
+                        printf("\n%s\n", dir);
+                        //strcat(dir, token);
+                        printf("\n%s\n", dir);
+
+                        if (stat(dir, sfile) == 0) {
                             printf("file found\n");
                             break;
                         } else {
