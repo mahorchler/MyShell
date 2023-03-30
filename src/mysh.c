@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <dirent.h>
 
 #ifndef DEBUG
@@ -182,14 +183,30 @@ void dumpLine(void)
                     char dir[BUFSIZE];
                     sprintf(dir, "%s/%s", defaultDirs[j], token);
                     if (stat(dir, &sfile) == 0) {
-                        printf("file found %d\n", j);
-                        errNum = 0;
-                        break;
+                        //printf("file found %s\n", defaultDirs[j]);
+                        int pid = fork();
+                        if (pid == 0) {
+                            char *args[] = {dir,0};
+                            execv(dir,args);
+                            
+                            // if we got here, something went wrong
+                            exit(EXIT_FAILURE);
+                        }
+                        // we are in the parent process
+                        int wstatus;
+                        int tpid = wait(&wstatus);   // wait for child to finish
+                        if (WIFEXITED(wstatus)) {
+                            errNum = 0;
+                            break;
+                        }
                     } else {
                         errNum = 1;
                     }
                     //free(dir);
                 }
+            }
+            if(errNum){
+                fprintf(stderr,"Error: Command Not Found\n");
             }
         }
         token = strtok(NULL, delim);
