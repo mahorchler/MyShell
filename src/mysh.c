@@ -133,14 +133,6 @@ void dumpLine(void)
 
     // dump output to stdout
     //write(1, lineBuffer, linePos);
-    printf("\n\n");
-
-    for (int a = 0; a < linePos-1; a++) {
-        printf("%s", &lineBuffer[a]);
-        printf("\n");
-    }
-
-    printf("\n\n");
    
     while (token != NULL) {
         if (strcmp(token, "exit") == 0) {
