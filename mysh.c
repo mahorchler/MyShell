@@ -200,26 +200,36 @@ void dumpLine(void)
     int commandSize = 3, defaultDirSize = 6, input_fd, output_fd;
    
     if (token != NULL) {
+        //exit case
         if (strcmp(token, "exit") == 0) {
             fputs("Terminating Program\n", stderr);
             exitShell = 1; 
             return;
-        } else if (strcmp(token, "pwd") == 0 && !(token = strtok(NULL, delim))) {
-            if (getcwd(cwd, sizeof(cwd)) != NULL) {
-                fprintf(stderr, "Current working directory: %s\n", cwd);
-                errNum = 0;
-            } else {
-                fputs("getcwd() error\n", stderr);
+
+        //pwd case
+        } else if (strcmp(token, "pwd") == 0) {
+            if (token = strtok(NULL, delim)){
+                fputs("Unexpected Number of Arguments\n",stderr);
                 errNum = 1;
             }
+            else{
+                if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                    fprintf(stderr, "Current working directory: %s\n", cwd);
+                    errNum = 0;
+                } else {
+                    fputs("getcwd() error\n", stderr);
+                    errNum = 1;
+                }
+            }
             return;
+        
+        //cd case
         } else if (strcmp(token, "cd") == 0) {
             token = strtok(NULL, delim);
             if(!token){
                 //change directory to home
                 if (chdir(getenv("HOME")) != 0) {
                     errNum = 1;
-                    //fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
                     perror("Failed");
                 } else {
                     errNum = 0;
@@ -233,16 +243,23 @@ void dumpLine(void)
                 char *nextToken = strtok(NULL, delim);
                 if (DEBUG) printf("token %s\n", nextToken);
                 if (strcmp(token, "..") == 0) {
-                    if (chdir("..") != 0 || nextToken != NULL) {
-                        errNum = 1;
-                        perror("Failed");
-                        //fprintf(stderr, "failed chdir ..: %s\n", getcwd(cwd, sizeof(cwd)));
-                    } else {
-                        errNum = 0;
+                    if(nextToken == NULL){
+                        if (chdir("..") != 0) {
+                            errNum = 1;
+                            perror("Failed");
+                        } else {
+                            fprintf(stderr, "Success\n");
+                            fprintf(stderr, "New Dir: %s\n", getcwd(cwd, sizeof(cwd)));
+                            errNum = 0;
+                        }
                     }
+                    else{
+                        fputs("Unexpected Number of Arguments\n",stderr);
+                        errNum = 1;
+                    }
+                    
                 } else if (nextToken != NULL || chdir(dir) != 0) {
-                    //fprintf(stderr, "failed chdir: %s\n", getcwd(cwd, sizeof(cwd)));
-                    perror("Failed");
+                    fputs("Unexpected Number of Arguments\n",stderr);
                     errNum = 1;
                 } else {
                     fprintf(stderr, "Success\n");
@@ -251,15 +268,21 @@ void dumpLine(void)
                 }
                 return;
             }
+        
+        //path file case
         } else if (token[0] == '/'){
             char dir[BUFSIZE];
             strcpy(dir, token);
             executeLine(dir,token);
             return;
+        
+        //invalid argument case
         } else if (strcmp(token, ">") == 0 || strcmp(token, "<") == 0){
-            //printf("Invalid arguments");
+            fputs("Invalid Arguments",stderr);
             errNum = 1;
             return;
+        
+        //defaultDirs command or nonexistent command case
         } else {
             //search defaultDirs for command
             int found = 0; //command found?
