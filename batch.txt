@@ -1,0 +1,13 @@
+ls
+cat in.txt
+date
+pwd
+cd ..
+cd MyShell
+cd .. ..
+cd nothing
+pwd badarg
+cd MyShell badarg
+pwd
+cd
+pwd

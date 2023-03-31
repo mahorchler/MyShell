@@ -1,0 +1,3 @@
+pwd
+~/Documents/SystemsProgramming/MyShell/revline in.txt
+pwd

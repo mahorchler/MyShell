@@ -60,6 +60,7 @@ int main(int argc, char **argv)
         lstart = 0;
         memset(lineBuffer, 0, BUFSIZE); //reset lineBuffer
         for (pos = 0; pos < bytes; ++pos) {
+            memset(lineBuffer, 0, BUFSIZE);
             if (buffer[pos] == '\n') {
             int thisLen = pos - lstart + 1;
             if (DEBUG) fprintf(stderr, "finished line %d+%d bytes\n", linePos, thisLen);
@@ -81,9 +82,9 @@ int main(int argc, char **argv)
         }
         if (fin == 0) {
             if (errNum) {
-                fputs("!mysh> ", stderr);
+                fputs("\n!mysh> ", stderr);
             } else {
-                fputs("mysh> ", stderr);
+                fputs("\nmysh> ", stderr);
                 errNum = 0;
             }
         }
